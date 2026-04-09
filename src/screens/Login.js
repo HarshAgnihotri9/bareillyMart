@@ -6,14 +6,45 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import InputField from "../components/InputFeild";
+import { loginUser } from "../services/api";
 
 const LoginScreen = () => {
   const [form, setForm] = useState({
     phone: "",
     password: "",
   });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    // 🔐 basic validation
+    if (!form.phone || !form.password) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await loginUser({ phone: form.phone,
+    password: form.password,});
+      console.log("Login Success 👉", res);
+
+      // 👉 later we store token (skip AsyncStorage for now)
+      // await AsyncStorage.setItem("token", res.token);
+
+      alert("Login Successful ✅");
+
+    } catch (err) {
+      console.log(err.response?.data || err.message);
+      alert(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -54,8 +85,12 @@ const LoginScreen = () => {
         <Text style={styles.forgot}>Forgot Password?</Text>
 
         {/* 🚀 Login Button */}
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
         </TouchableOpacity>
 
         {/* 🔁 Signup Redirect */}
